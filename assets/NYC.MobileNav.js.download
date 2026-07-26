@@ -1,0 +1,241 @@
+var NYC = NYC || {};
+NYC.MobileNav = {};
+
+/**
+ * Class NYC.MobileNav
+ *
+ */
+
+NYC.MobileNav = Class.extend({
+
+    init: function init(options, elem) {
+
+        console.log("init mobile nav");
+
+		// Set element vars
+		this.idNavTopSearches 		= $('#nav-top-searches');
+		this.idToggleMobileSearch 	= $('#toggle-mobile-search');
+		this.idNav 					= $('#nav');
+		this.idNavHr 				= $('#nav-hr');
+		this.idHeaderLinks 			= $('#header-links');
+
+        this.options = $.extend({}, this.options, options);
+
+        this.bindEvents();
+    },
+
+    options: {
+        el: "mobile"
+    },
+
+	resizeElements : function() {
+		var self = this;
+
+		// Deactivate tablet search
+		if ((($(document).width() < 768) || ($(document).width() > 839) ) && ($('#toggle-search-wide').hasClass('toggle-search-wide-background-arrow'))) {
+				$("#global-search-form2").toggleClass("hidden");
+				$('#toggle-search-wide').addClass('toggle-search-wide-background-ico-search').removeClass('toggle-search-wide-background-arrow');
+				self.idNavHr.addClass('hidden');
+		}
+	},
+
+    bindEvents: function (range) 
+	{
+		var self = this;
+		var app = {};
+		var _init = nav_open = false;
+
+        // normalize vendor prefixes
+        var doc 	= document.documentElement,
+			inner 	= document.getElementById('inner-wrap');
+		
+		// Cache elements
+		var html 				= $('html'),
+			toggleSearchWide 	= $("#toggle-search-wide"),
+			searchForm			= $("#global-search-form1"),
+			navBtn				= $('#nav-open-btn');
+
+					
+        // top searches: show / hide
+        self.idToggleMobileSearch.on("click", function () 
+		{
+			searchForm			= $("#global-search-form2");
+            self.idNavTopSearches.toggleClass("hidden-phone");
+            self.idToggleMobileSearch.toggleClass("nav-sprite-mobile");
+			self.idToggleMobileSearch.find("span").toggleClass("hidden");
+			searchForm.toggleClass("hidden");
+        });
+
+        // on iPad
+        toggleSearchWide.on("click", function(e) 
+		{
+           searchForm.toggleClass("hidden");
+           
+            if ($(this).hasClass('toggle-search-wide-background-ico-search')) 
+			{
+                $(this).addClass('toggle-search-wide-background-arrow').removeClass('toggle-search-wide-background-ico-search');
+				//self.idNavHr.removeClass('hidden');
+            } 
+			else 
+			{
+                $(this).addClass('toggle-search-wide-background-ico-search').removeClass('toggle-search-wide-background-arrow');
+				//self.idNavHr.addClass('hidden');
+            }
+        });
+
+        // helper function
+        var hasParent = function (el, id) 
+		{
+            if (el) 
+			{
+                do {
+                    if (el.id === id) {
+                        return true;
+                    }
+                    if (el.nodeType === 9) {
+                        break;
+                    }
+                }
+                while ((el = el.parentNode));
+            }
+            return false;
+        };
+
+		// Transition
+        var transform_prop = window.Modernizr.prefixed('transform'),
+            transition_prop = window.Modernizr.prefixed('transition'),
+            transition_end = (function() 
+			{
+				var props = {
+                    'WebkitTransition' : 'webkitTransitionEnd',
+                    'MozTransition'    : 'transitionend',
+                    'OTransition'      : 'oTransitionEnd otransitionend',
+                    'msTransition'     : 'MSTransitionEnd',
+                    'transition'       : 'transitionend'
+                };
+
+                return props.hasOwnProperty(transition_prop) ? props[transition_prop] : false;
+            })();
+
+
+		// Close nav
+		var closeNavEnd = function (e) 
+		{
+			if (e && e.target === inner) {
+				document.removeEventListener(transition_end, closeNavEnd, false);
+			}
+			nav_open = false;
+		};
+
+		app.closeNav = function () 
+		{
+			if (nav_open) {
+				
+				// close navigation after transition or immediately
+				var duration = (transition_end && transition_prop) ? parseFloat(window.getComputedStyle(inner, '')[transition_prop + 'Duration']) : 0;
+				
+				if (duration > 0) {
+					document.addEventListener(transition_end, closeNavEnd, false);
+				} else {
+					closeNavEnd(null);
+				}
+			}
+			// Remove js-nav class
+			html.removeClass('js-nav');
+		};
+		
+		app.openNav = function () 
+		{
+			if (nav_open) {
+				return;
+			}
+			
+			if (self.idNav.hasClass('hidden-phone')) {
+				self.idNav.toggleClass("hidden-phone");
+			}
+			if (self.idHeaderLinks.hasClass('hidden-phone')) {
+				self.idHeaderLinks.toggleClass("hidden-phone");
+			}
+			if (!self.idNavTopSearches.hasClass('hidden-phone')) {
+				self.idNavTopSearches.toggleClass("hidden-phone");
+				self.idToggleMobileSearch.toggleClass("nav-sprite-mobile");
+				self.idToggleMobileSearch.find("span").toggleClass("hidden");
+			}
+
+			// Add js-nav class
+			html.addClass('js-nav');
+			nav_open = true;
+		};
+
+		app.toggleNav = function (e) 
+		{
+			if (nav_open && $('html').hasClass('js-nav')) {
+				app.closeNav();
+			} else {
+				app.openNav();
+			}
+			if (e) {
+				e.preventDefault();
+			}
+		};
+
+		// open nav with main "nav" button
+		navBtn.on("click", function (e) 
+		{
+			e.preventDefault();
+			app.toggleNav();
+		});
+
+		// close nav by touching the partial off-screen content
+		$(document).on("click", function (e) 
+		{
+			if ((e.target.id != 'nav-open-btn' ) && (nav_open) && (!hasParent(e.target, 'nav')) ) {
+				e.preventDefault();
+				app.closeNav();
+			}
+		});
+
+		// Add js-nav class
+		html.addClass('js-ready');
+
+		$(window).smartresize(function() {
+			self.resizeElements();
+		});
+
+    }
+});
+
+// mobile translation
+
+function mTranslatePage(){
+	var theLanguage=document.getElementById("languageDropdown").options[document.getElementById("languageDropdown").selectedIndex].value;
+	if(theLanguage.length>0){
+		if($(".skiptranslate").contents().find("span.text:contains('"+theLanguage+"')").get(0)){
+			$(".skiptranslate").contents().find("span.text:contains('"+theLanguage+"')").get(0).click();
+          	$("#nav-open-btn").click();
+		}
+	}
+}
+
+// check if language gif is hidden
+if ($(".language-gif").css("display") != "none") {
+	$("<link/>", {
+	   rel: "stylesheet",
+	   type: "text/css",
+	   href: "https://www.nyc.gov/assets/home/css/pages/agencies/mobile-translate.css"
+	}).appendTo("head");
+	
+	$("#nav").append('<div class="mobile-translation" role="heading" aria-level="2" style="display: none;"><label><span class="sr-only" role="presentation">Language</span><div class="select-container"><select name="Language" id="languageDropdown" class="notranslate"><option>English</option><option>Afrikaans</option><option>Albanian</option><option>Amharic</option><option>Arabic</option><option>Armenian</option><option>Azerbaijani</option><option>Basque</option><option>Belarusian</option><option>Bengali</option><option>Bosnian</option><option>Bulgarian</option><option>Catalan</option><option>Cebuano</option><option>Chichewa</option><option>Chinese (Simplified)</option><option>Chinese (Traditional)</option><option>Corsican</option><option>Croatian</option><option>Czech</option><option>Danish</option><option>Dutch</option><option>Esperanto</option><option>Estonian</option><option>Filipino</option><option>Finnish</option><option>French</option><option>Frisian</option><option>Galician</option><option>Georgian</option><option>German</option><option>Greek</option><option>Gujarati</option><option>Hausa</option><option>Haitian Creole</option><option>Hawaiian</option><option>Hebrew</option><option>Hindi</option><option>Hmong</option><option>Hungarian</option><option>Icelandic</option><option>Igbo</option><option>Indonesian</option><option>Irish</option><option>Italian</option><option>Japanese</option><option>Javanese</option><option>Kannada</option><option>Kazakh</option><option>Khmer</option><option>Korean</option><option>Kurdish (Kurmanji)</option><option>Kyrgyz</option><option>Lao</option><option>Latin</option><option>Latvian</option><option>Lithuanian</option><option>Luxembourgish</option><option>Macedonian</option><option>Malagasy</option><option>Malay</option><option>Malayalam</option><option>Maltese</option><option>Maori</option><option>Marathi</option><option>Mongolian</option><option>Myanmar (Burmese)</option><option>Nepali</option><option>Norwegian</option><option>Pashto</option><option>Persian</option><option>Polish</option><option>Portuguese</option><option>Punjabi</option><option>Romanian</option><option>Russian</option><option>Samoan</option><option>Scots Gaelic</option><option>Serbian</option><option>Sesotho</option><option>Shona</option><option>Sindhi</option><option>Sinhala</option><option>Slovak</option><option>Slovenian</option><option>Somali</option><option>Spanish</option><option>Sundanese</option><option>Swahili</option><option>Swedish</option><option>Tajik</option><option>Tamil</option><option>Telugu</option><option>Thai</option><option>Turkish</option><option>Ukrainian</option><option>Urdu</option><option>Uzbek</option><option>Vietnamese</option><option>Welsh</option><option>Xhosa</option><option>Yiddish</option><option>Yoruba</option><option>Zulu</option></select></div></label><button type="button" onclick="mTranslatePage();" class="btn btn-form-submit"><span class="sr-only">Apply Translation</span></button></div>');
+	
+	$("<a href=\"#\" class=\"visible-phone\" id=\"toggle-mobile-translate\" aria-label=\"Translate This Page\" style=\"position: absolute; right: 40px; top: 10px; width: 2.5rem; height: 1.75rem; background: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' id='Layer_1' data-name='Layer 1' width='640' height='768.25' viewBox='0 0 640 768.25'%3E%3Cdefs%3E%3Cstyle%3E.cls-1%7Bfill:%23585858;%7D%3C/style%3E%3C/defs%3E%3Ctitle%3EArtboard 27%3C/title%3E%3Cpath class='cls-1' d='M543.43,169.22,513.85,0l-41.2,58.66A330.81,330.81,0,0,0,96.57,135.05l73,68.34a231.44,231.44,0,0,1,244-60.63l-39.38,56.07Z'/%3E%3Cpath class='cls-1' d='M304,224.12H24a23.94,23.94,0,0,0-24,24v272a23.94,23.94,0,0,0,24,24H304Zm-86.2,256H194.9a12,12,0,0,1-11.5-8.6l-9.4-31.9H113.8l-9.1,31.8a12.09,12.09,0,0,1-11.5,8.7H70.3a12.08,12.08,0,0,1-11.4-15.9l57.5-169.1a12,12,0,0,1,11.4-8.1h32.5a12.19,12.19,0,0,1,11.4,8.1l57.5,169.1A12,12,0,0,1,217.8,480.12Z'/%3E%3Cpath class='cls-1' d='M616,224.12H336v320H616a23.94,23.94,0,0,0,24-24v-272A23.94,23.94,0,0,0,616,224.12Zm-24,120a12,12,0,0,1-12,12H568.6c-6.9,23.6-21.7,47.4-42.7,69.9A310,310,0,0,0,552,444a12,12,0,0,1,4.1,16.2l-7.9,13.9a12,12,0,0,1-16.7,4.3,347.93,347.93,0,0,1-35.4-24.9,352.66,352.66,0,0,1-35.4,24.9,12,12,0,0,1-16.7-4.3l-7.9-13.9a12,12,0,0,1,4.2-16.2,285.27,285.27,0,0,0,26.1-18,232,232,0,0,1-21-25.7,12,12,0,0,1,3.7-17.1l6.5-3.9,7.3-4.3a12.09,12.09,0,0,1,16,3.4,190.68,190.68,0,0,0,17.4,20.9c13.5-14.2,23.8-28.9,30-43.2H412a12,12,0,0,1-12-12v-16a12,12,0,0,1,12-12h64v-16a12,12,0,0,1,12-12h16a12,12,0,0,1,12,12v16h64a12,12,0,0,1,12,12Z'/%3E%3Cpath class='cls-1' d='M144.3,331.12h-.5s-4.3,21.1-7.8,33.2l-11.1,37.5H163l-10.9-37.5C148.6,352.22,144.3,331.12,144.3,331.12Z'/%3E%3Cpath class='cls-1' d='M96.57,599l29.58,169.22,41.2-58.67A330.79,330.79,0,0,0,543.43,633.2l-73-68.34a231.44,231.44,0,0,1-244,60.63l39.38-56.08Z'/%3E%3C/svg%3E&quot;) no-repeat center left 0.5rem/auto 1.5rem; z-index: 9998;\"><span class=\"hidden\">Translate This Page</span></a>").insertBefore("#toggle-mobile-search");
+	
+	$("#toggle-mobile-translate").on( "click", function() {
+		$("#nav-open-btn").click();
+	  	//$("#languageDropdown").focus(); //iOS bug
+		return false;
+	});
+  
+	addLoadEvent(function(){
+  		$(".mobile-translation").css("display", "");
+	});
+}

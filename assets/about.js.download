@@ -1,0 +1,69 @@
+var NYC = NYC || {};
+NYC.Agencies = {};
+
+/**
+ * Events Index
+ *
+ */
+NYC.Agencies.About = (function() {
+	
+	var self = this;
+
+    self.init = function init() {
+
+    	//inline comment
+    	var self = this;
+
+    	self.bindEvents();
+		$("a.main-filter-category").each(function(){
+			if($(this).height()>54){
+				$(this).addClass("condense");
+			}
+		});
+    },
+
+    /* inline comment */
+    self.isDevice = function() {
+
+    	var self = this;
+
+    },
+
+	self.bindEvents = function() {
+
+		var self = this;
+		$('.module-threeoneonefooter').remove();
+
+	}
+
+	/* private function */
+	function private() {
+
+	}
+
+    return self;
+
+}());
+
+$(document).ready(function(){
+	NYC.Agencies.About.init();
+	if($(".page").height()<$(window).height()){
+		$("<link/>", {
+				rel: "stylesheet",
+				type: "text/css",
+				href: "/assets/home/css/pages/agencies/fix-footer.css"
+			}).appendTo("head");
+	}
+});
+
+// monitor change in dom to watch for gt
+const targetNodeGT = document.getElementById("page");
+const configGT = { childList: true, subtree: true };
+const callbackGT = (mutationList, observerGT) => {
+	if ($('iframe.skiptranslate').contents().find('body').css('overflow') != null) {
+		$('iframe.skiptranslate').contents().find("body").css('overflow','auto');
+		observerGT.disconnect();
+	} 
+};
+const observerGT = new MutationObserver(callbackGT);
+observerGT.observe(targetNodeGT, configGT);
